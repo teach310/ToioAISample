@@ -1,8 +1,10 @@
 {
-    "name": "XLua.Runtime",
-    "rootNamespace": "",
+    "name": "ToioAI",
+    "rootNamespace": "ToioAI",
     "references": [
-        "GUID:ecbcc5fa8954f4f83bd6395deef47943"
+        "GUID:f51ebe6a0ceec4240a699833d6309b23",
+        "GUID:ecbcc5fa8954f4f83bd6395deef47943",
+        "GUID:396f6107f728a4584943959b6c7c4080"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

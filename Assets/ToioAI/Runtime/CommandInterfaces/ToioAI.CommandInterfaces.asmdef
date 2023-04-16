@@ -1,9 +1,7 @@
 {
-    "name": "XLua.Runtime",
-    "rootNamespace": "",
-    "references": [
-        "GUID:ecbcc5fa8954f4f83bd6395deef47943"
-    ],
+    "name": "ToioAI.CommandInterfaces",
+    "rootNamespace": "ToioAI.CommandInterfaces",
+    "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
