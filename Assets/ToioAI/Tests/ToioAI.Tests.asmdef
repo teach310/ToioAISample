@@ -1,0 +1,22 @@
+{
+    "name": "ToioAI.Tests",
+    "rootNamespace": "ToioAITests",
+    "references": [
+        "GUID:db8872ddf3c854f5d8b2e0c9391a9a98",
+        "GUID:f51ebe6a0ceec4240a699833d6309b23",
+        "GUID:27619889b8ba8c24980f49ee34dbb44a"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
