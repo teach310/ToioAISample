@@ -5,6 +5,7 @@ using ToioAI.CommandInterfaces;
 using XLua;
 using toio;
 using UnityEngine.UI;
+using Cysharp.Threading.Tasks;
 
 namespace ToioAI
 {
@@ -52,7 +53,9 @@ namespace ToioAI
         [SerializeField] Text label;
         public ConnectType connectType;
         CubeManager cm;
+        CubeLuaGenerator luaGenerator;
         LuaEnv luaEnv;
+        bool isProcessing = false;
 
         async void Start()
         {
@@ -63,6 +66,7 @@ namespace ToioAI
             luaEnv = new LuaEnv();
             var cubeCommandHandler = new CubeCommandHandler(cm);
             cubeCommandHandler.cubes["cube1"] = cube;
+            luaGenerator = new CubeLuaGenerator();
 
             luaEnv.Global.Set("cubeCommand", cubeCommandHandler.GetAdapter());
             luaEnv.DoString(@"
@@ -83,6 +87,33 @@ namespace ToioAI
         void OnDestroy()
         {
             luaEnv?.Dispose();
+        }
+
+        public void OnClickSend()
+        {
+            if(isProcessing)
+            {
+                return;
+            }
+
+            ProcessAsync("dummy text").Forget();
+        }
+
+        async UniTaskVoid ProcessAsync(string message)
+        {
+            isProcessing = true;
+            label.text = "processing...";
+            try
+            {
+                var content = await luaGenerator.GenerateAsync(message);
+                Debug.Log(content);
+                luaEnv.DoString(content);
+            }
+            finally
+            {
+                isProcessing = false;
+                label.text = "connected";
+            }
         }
     }
 }
