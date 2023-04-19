@@ -52,6 +52,8 @@ namespace ToioAI
         }
 
         [SerializeField] Text label;
+        [SerializeField] Button sendButton;
+        [SerializeField] InputField inputField;
         public ConnectType connectType;
         CubeManager cm;
         CubeLuaGenerator luaGenerator;
@@ -88,26 +90,11 @@ namespace ToioAI
                     cubeCommand:ShowMessage('Start!')
                 end
             ");
+            inputField.onSubmit.AddListener((message) =>
+            {
+                TryStartProcess();
+            });
         }
-
-        // void Update()
-        // {
-        //     if (Input.GetKeyDown(KeyCode.Space))
-        //     {
-        //         luaEnv.DoString(@"
-        //             function routine()
-        //                 cubeCommand:ShowMessage('3')
-        //                 coroutine.yield(CS.UnityEngine.WaitForSeconds(1))
-        //                 cubeCommand:ShowMessage('2')
-        //                 coroutine.yield(CS.UnityEngine.WaitForSeconds(1))
-        //                 cubeCommand:ShowMessage('1')
-        //                 coroutine.yield(CS.UnityEngine.WaitForSeconds(1))
-        //                 cubeCommand:ShowMessage('Start!')
-        //             end
-        //         ");
-        //         RunLuaAsync().Forget();
-        //     }
-        // }
 
         void OnDestroy()
         {
@@ -116,30 +103,37 @@ namespace ToioAI
 
         public void OnClickSend()
         {
-            if(isProcessing)
+            TryStartProcess();
+        }
+
+        void TryStartProcess()
+        {
+            if(isProcessing || string.IsNullOrEmpty(inputField.text))
             {
                 return;
             }
 
-            ProcessAsync("1秒前に進んで").Forget();
+            ProcessAsync(inputField.text).Forget();
         }
 
         async UniTaskVoid ProcessAsync(string message)
         {
             isProcessing = true;
             label.text = "processing...";
+            inputField.interactable = false;
+            sendButton.interactable = false;
             try
             {
                 var content = await luaGenerator.GenerateAsync(message);
                 Debug.Log(content);
-            //     luaEnv.DoString(luaScript.text);
-            
-            // yield return routine;
                 luaEnv.DoString(content);
                 await LuaCoroutine();
             }
             finally
             {
+                inputField.text = string.Empty;
+                inputField.interactable = true;
+                sendButton.interactable = true;
                 isProcessing = false;
                 label.text = "connected";
             }
