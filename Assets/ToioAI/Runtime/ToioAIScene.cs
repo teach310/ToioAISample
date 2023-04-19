@@ -6,6 +6,7 @@ using XLua;
 using toio;
 using UnityEngine.UI;
 using Cysharp.Threading.Tasks;
+using System;
 
 namespace ToioAI
 {
@@ -62,6 +63,7 @@ namespace ToioAI
             cm = new CubeManager(connectType);
             var cube = await cm.SingleConnect();
             label.text = "connected";
+            cube.Move(1,1, 10); // 初回Controllableがfalse返るので、一度動かしておく
 
             luaEnv = new LuaEnv();
             var cubeCommandHandler = new CubeCommandHandler(cm);
@@ -69,20 +71,43 @@ namespace ToioAI
             luaGenerator = new CubeLuaGenerator();
 
             luaEnv.Global.Set("cubeCommand", cubeCommandHandler.GetAdapter());
+
+            // routineは上書きする
             luaEnv.DoString(@"
-                cubeCommand:ShowMessage('Start!')
+                local util = require 'xlua.util'
+
+                function getCsRoutine()
+                    return util.cs_generator(routine);
+                end
+
+                function routine()
+                    cubeCommand:ShowMessage('2')
+                    coroutine.yield(CS.UnityEngine.WaitForSeconds(1))
+                    cubeCommand:ShowMessage('1')
+                    coroutine.yield(CS.UnityEngine.WaitForSeconds(1))
+                    cubeCommand:ShowMessage('Start!')
+                end
             ");
         }
 
-        void Update()
-        {
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                luaEnv.DoString(@"
-                    cubeCommand:Move('cube1', 50, -50, 100)
-                ");
-            }
-        }
+        // void Update()
+        // {
+        //     if (Input.GetKeyDown(KeyCode.Space))
+        //     {
+        //         luaEnv.DoString(@"
+        //             function routine()
+        //                 cubeCommand:ShowMessage('3')
+        //                 coroutine.yield(CS.UnityEngine.WaitForSeconds(1))
+        //                 cubeCommand:ShowMessage('2')
+        //                 coroutine.yield(CS.UnityEngine.WaitForSeconds(1))
+        //                 cubeCommand:ShowMessage('1')
+        //                 coroutine.yield(CS.UnityEngine.WaitForSeconds(1))
+        //                 cubeCommand:ShowMessage('Start!')
+        //             end
+        //         ");
+        //         RunLuaAsync().Forget();
+        //     }
+        // }
 
         void OnDestroy()
         {
@@ -96,7 +121,7 @@ namespace ToioAI
                 return;
             }
 
-            ProcessAsync("dummy text").Forget();
+            ProcessAsync("1秒前に進んで").Forget();
         }
 
         async UniTaskVoid ProcessAsync(string message)
@@ -107,13 +132,38 @@ namespace ToioAI
             {
                 var content = await luaGenerator.GenerateAsync(message);
                 Debug.Log(content);
+            //     luaEnv.DoString(luaScript.text);
+            
+            // yield return routine;
                 luaEnv.DoString(content);
+                await LuaCoroutine();
             }
             finally
             {
                 isProcessing = false;
                 label.text = "connected";
             }
+        }
+
+        async UniTaskVoid RunLuaAsync()
+        {
+            isProcessing = true;
+            label.text = "processing...";
+            try
+            {
+                await LuaCoroutine();
+            }
+            finally
+            {
+                isProcessing = false;
+                label.text = "connected";
+            }
+        }
+
+        IEnumerator LuaCoroutine()
+        {
+            var routine = luaEnv.Global.Get<Func<IEnumerator>>("getCsRoutine").Invoke();
+            yield return routine;
         }
     }
 }

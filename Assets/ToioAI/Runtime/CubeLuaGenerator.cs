@@ -15,7 +15,6 @@ namespace ToioAI
         {
             var request = new CubesLuaRequest(new List<CubesLuaRequestMessage>()
             {
-                new CubesLuaRequestMessage("system", "あなたはluaのコードジェネレータです。"),
                 new CubesLuaRequestMessage("user", message),
             });
             var api = new API();

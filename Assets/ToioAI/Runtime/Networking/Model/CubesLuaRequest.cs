@@ -20,12 +20,12 @@ namespace ToioAI.Networking.Model
     public class CubesLuaRequestMessage
     {
         public string role;
-        public string message;
+        public string content;
 
-        public CubesLuaRequestMessage(string role, string message)
+        public CubesLuaRequestMessage(string role, string content)
         {
             this.role = role;
-            this.message = message;
+            this.content = content;
         }
     }
 }
