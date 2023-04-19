@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using ToioAI.CommandInterfaces;
 using XLua;
+using toio;
+using UnityEngine.UI;
 
 namespace ToioAI
 {
@@ -21,15 +23,39 @@ namespace ToioAI
             }
         }
 
-        public void Start()
+        [SerializeField] Text label;
+        public ConnectType connectType;
+        CubeManager cm;
+        LuaEnv luaEnv;
+
+        async void Start()
         {
-            var luaEnv = new LuaEnv();
+            cm = new CubeManager(connectType);
+            var cube = await cm.SingleConnect();
+            label.text = "connected";
+
+            luaEnv = new LuaEnv();
             var cubeCommand = new CubeCommandHandler();
             luaEnv.Global.Set("cube", cubeCommand.GetAdapter());
             luaEnv.DoString(@"
                 cube:ShowMessage('Hello World!')
             ");
-            luaEnv.Dispose();
+        }
+
+        void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                foreach(var cube in cm.syncCubes)
+                {
+                    cube.Move(50, -50, 100);
+                }
+            }
+        }
+
+        void OnDestroy()
+        {
+            luaEnv?.Dispose();
         }
     }
 }
