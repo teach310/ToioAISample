@@ -43,15 +43,15 @@ namespace XLua.Custom
         //         };
 
         // //C#静态调用Lua的配置（包括事件的原型），仅可以配delegate，interface
-        // [CSharpCallLua]
-        // public static List<Type> CSharpCallLua = new List<Type>() {
-        //             typeof(Action),
-        //             typeof(Func<double, double, double>),
-        //             typeof(Action<string>),
-        //             typeof(Action<double>),
-        //             typeof(UnityEngine.Events.UnityAction),
-        //             typeof(System.Collections.IEnumerator)
-        //         };
+        [CSharpCallLua]
+        public static List<Type> CSharpCallLua = new List<Type>() {
+                    // typeof(Action),
+                    // typeof(Func<double, double, double>),
+                    // typeof(Action<string>),
+                    // typeof(Action<double>),
+                    // typeof(UnityEngine.Events.UnityAction),
+                    typeof(System.Collections.IEnumerator)
+                };
 
         // //黑名单
         // [BlackList]
