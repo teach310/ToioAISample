@@ -21,10 +21,12 @@ namespace XLua.CSObjectWrap
         {
 			ObjectTranslator translator = ObjectTranslatorPool.Instance.Find(L);
 			System.Type type = typeof(XLua.Custom.LuaCubeCommandAdapter);
-			Utils.BeginObjectRegister(type, L, translator, 0, 2, 0, 0);
+			Utils.BeginObjectRegister(type, L, translator, 0, 4, 0, 0);
 			
 			Utils.RegisterFunc(L, Utils.METHOD_IDX, "ShowMessage", _m_ShowMessage);
 			Utils.RegisterFunc(L, Utils.METHOD_IDX, "Move", _m_Move);
+			Utils.RegisterFunc(L, Utils.METHOD_IDX, "Navi2TargetCoroutine", _m_Navi2TargetCoroutine);
+			Utils.RegisterFunc(L, Utils.METHOD_IDX, "Rotate2DegCoroutine", _m_Rotate2DegCoroutine);
 			
 			
 			
@@ -125,6 +127,67 @@ namespace XLua.CSObjectWrap
                     
                     
                     return 0;
+                }
+                
+            } catch(System.Exception gen_e) {
+                return LuaAPI.luaL_error(L, "c# exception:" + gen_e);
+            }
+            
+        }
+        
+        [MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+        static int _m_Navi2TargetCoroutine(RealStatePtr L)
+        {
+		    try {
+            
+                ObjectTranslator translator = ObjectTranslatorPool.Instance.Find(L);
+            
+            
+                XLua.Custom.LuaCubeCommandAdapter gen_to_be_invoked = (XLua.Custom.LuaCubeCommandAdapter)translator.FastGetCSObj(L, 1);
+            
+            
+                
+                {
+                    string _id = LuaAPI.lua_tostring(L, 2);
+                    double _x = LuaAPI.lua_tonumber(L, 3);
+                    double _y = LuaAPI.lua_tonumber(L, 4);
+                    
+                        var gen_ret = gen_to_be_invoked.Navi2TargetCoroutine( _id, _x, _y );
+                        translator.PushAny(L, gen_ret);
+                    
+                    
+                    
+                    return 1;
+                }
+                
+            } catch(System.Exception gen_e) {
+                return LuaAPI.luaL_error(L, "c# exception:" + gen_e);
+            }
+            
+        }
+        
+        [MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+        static int _m_Rotate2DegCoroutine(RealStatePtr L)
+        {
+		    try {
+            
+                ObjectTranslator translator = ObjectTranslatorPool.Instance.Find(L);
+            
+            
+                XLua.Custom.LuaCubeCommandAdapter gen_to_be_invoked = (XLua.Custom.LuaCubeCommandAdapter)translator.FastGetCSObj(L, 1);
+            
+            
+                
+                {
+                    string _id = LuaAPI.lua_tostring(L, 2);
+                    double _deg = LuaAPI.lua_tonumber(L, 3);
+                    
+                        var gen_ret = gen_to_be_invoked.Rotate2DegCoroutine( _id, _deg );
+                        translator.PushAny(L, gen_ret);
+                    
+                    
+                    
+                    return 1;
                 }
                 
             } catch(System.Exception gen_e) {

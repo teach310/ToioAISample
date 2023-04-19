@@ -14,5 +14,13 @@ namespace ToioAI.CommandInterfaces
         // order      | 優先度　　　　 | 種類(Week, Strong)
         // orderは必要になったら追加する
         void Move(string id, int left, int right, int durationMs);
+
+        // https://toio.github.io/toio-spec/docs/hardware_position_id/
+        // x: 45~455, y: 45~455
+        // example) left top: 45, 45
+        IEnumerator Navi2TargetCoroutine(string id, double x, double y, int rotateTime = 250, float timeout = 5f);
+
+        // deg. world forward: -90, right: 0 
+        IEnumerator Rotate2DegCoroutine(string id, double deg, int rotateTime = 250, float timeout = 5f);
     }
 }
