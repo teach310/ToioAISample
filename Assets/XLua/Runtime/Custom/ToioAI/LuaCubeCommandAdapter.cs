@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace XLua.Custom
 {
+    [LuaCallCSharp]
     public class LuaCubeCommandAdapter
     {
         ICubeCommand command;
@@ -15,5 +16,6 @@ namespace XLua.Custom
         }
 
         public void ShowMessage(string message) => command.ShowMessage(message);
+        public void Move(string id, int left, int right, int durationMs) => command.Move(id, left, right, durationMs);
     }
 }
