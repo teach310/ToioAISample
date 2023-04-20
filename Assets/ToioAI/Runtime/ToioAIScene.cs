@@ -130,6 +130,7 @@ namespace ToioAI
         [SerializeField] Button sendButton;
         [SerializeField] InputField inputField;
         public ConnectType connectType;
+        public int cubeCount = 2;
         CubeManager cm;
         CubeCommandHandler cubeCommandHandler;
         CubeLuaGenerator luaGenerator;
@@ -139,17 +140,27 @@ namespace ToioAI
         async void Start()
         {
             cm = new CubeManager(connectType);
-            var cube = await cm.SingleConnect();
-            label.text = "connected";
-            cube.Move(1, 1, 10); // 初回Controllableがfalse返るので、一度動かしておく
-
-            luaEnv = new LuaEnv();
             cubeCommandHandler = new CubeCommandHandler(cm);
-            cubeCommandHandler.cubes["cube1"] = cube;
-            cubeCommandHandler.cubeIndexMap["cube1"] = 0;
             luaGenerator = new CubeLuaGenerator();
 
+            var cubes = await cm.MultiConnect(cubeCount);
+            label.text = "connected";
+
+            for (int i = 0; i < cubes.Length; i++)
+            {
+                string id = $"cube{i + 1}";
+                cubeCommandHandler.cubes[id] = cubes[i];
+                cubeCommandHandler.cubeIndexMap[id] = i;
+                cubes[i].Move(1, 1, 10); // 初回Controllableがfalse返るので、一度動かしておく
+                luaGenerator.AddCubeId(id);
+            }
+
+            luaEnv = new LuaEnv();
+            
+
             luaEnv.Global.Set("cubeCommand", cubeCommandHandler.GetAdapter());
+            Coroutine InvokeStartCoroutine(IEnumerator routine) => StartCoroutine(routine);
+            luaEnv.Global.Set("csStartCoroutine", (Func<IEnumerator, Coroutine>)InvokeStartCoroutine);
 
             // routineは上書きする
             luaEnv.DoString(@"
@@ -193,14 +204,51 @@ namespace ToioAI
                 //     UnityEngine.Debug.Log($"x: {x}, y: {y}");
                 // }
 
+                if (Input.GetKeyDown(KeyCode.Q))
+                {
+                    luaEnv.DoString(GetSampleLuaScript());
+                    RunLuaAsync().Forget();
+                }
+
                 if (Input.GetKeyDown(KeyCode.S))
                 {
                     luaEnv.DoString(@"
                         function routine()
-                            cubeCommand:ShowMessage('Go to start position (=center) and look forward')
-                            coroutine.yield(cubeCommand:Navi2TargetCoroutine('cube1', 250, 250))
-                            coroutine.yield(cubeCommand:Rotate2DegCoroutine('cube1', -90))
-                            cubeCommand:ShowMessage('Ready!')
+                            local positions = {
+                                {x = 100, y = 100},
+                                {x = 100, y = 400},
+                                {x = 400, y = 400},
+                                {x = 400, y = 100},
+                            }
+
+                            cubeCommand:ShowMessage('set cube1 and cube2 start position')
+                            coroutine1 = csStartCoroutine(cubeCommand:Navi2TargetCoroutine('cube1', positions[2].x, positions[2].y))
+                            coroutine2 = csStartCoroutine(cubeCommand:Navi2TargetCoroutine('cube2', positions[1].x, positions[1].y))
+                            coroutine.yield(coroutine1)
+                            coroutine.yield(cubeCommand:Rotate2DegCoroutine('cube1', 0))
+                            coroutine.yield(coroutine2)
+                            coroutine.yield(cubeCommand:Rotate2DegCoroutine('cube2', -90))
+                            coroutine.yield(CS.UnityEngine.WaitForSeconds(0.5))
+
+                            cubeCommand:ShowMessage('move each cube')
+                            coroutine1 = csStartCoroutine(cubeCommand:Navi2TargetCoroutine('cube1', positions[3].x, positions[3].y))
+                            coroutine.yield(CS.UnityEngine.WaitForSeconds(0.2))
+                            coroutine2 = csStartCoroutine(cubeCommand:Navi2TargetCoroutine('cube2', positions[2].x, positions[2].y))
+                            coroutine.yield(coroutine1)
+                            coroutine.yield(cubeCommand:Rotate2DegCoroutine('cube1', 90))
+                            coroutine.yield(coroutine2)
+                            coroutine.yield(cubeCommand:Rotate2DegCoroutine('cube2', 0))
+                            coroutine.yield(CS.UnityEngine.WaitForSeconds(0.5))
+
+                            coroutine1 = csStartCoroutine(cubeCommand:Navi2TargetCoroutine('cube1', positions[4].x, positions[4].y))
+                            coroutine.yield(CS.UnityEngine.WaitForSeconds(0.2))
+                            coroutine2 = csStartCoroutine(cubeCommand:Navi2TargetCoroutine('cube2', positions[3].x, positions[3].y))
+                            coroutine.yield(coroutine1)
+                            coroutine.yield(cubeCommand:Rotate2DegCoroutine('cube1', 180))
+                            coroutine.yield(coroutine2)
+                            coroutine.yield(cubeCommand:Rotate2DegCoroutine('cube2', 90))
+
+                            cubeCommand:ShowMessage('Finish!')
                         end
                     ");
                     RunLuaAsync().Forget();
@@ -239,7 +287,7 @@ namespace ToioAI
                 var content = await luaGenerator.GenerateAsync(message);
                 Debug.Log(content);
                 luaEnv.DoString(content);
-                await LuaCoroutine();
+                await LuaCoroutine().ToUniTask(this);
             }
             finally
             {
@@ -257,7 +305,7 @@ namespace ToioAI
             label.text = "processing...";
             try
             {
-                await LuaCoroutine();
+                await LuaCoroutine().ToUniTask(this);
             }
             finally
             {
@@ -270,6 +318,34 @@ namespace ToioAI
         {
             var routine = luaEnv.Global.Get<Func<IEnumerator>>("getCsRoutine").Invoke();
             yield return routine;
+        }
+
+        string GetSampleLuaScript()
+        {
+            return @"
+                local util = require 'xlua.util'
+
+                function startCoroutine(coroutine, ...)
+                    if type(coroutine) == 'function' then
+                        return csStartCoroutine(util.cs_generator(coroutine, ...))
+                    end
+                    return csStartCoroutine(coroutine)
+                end
+
+                function routine()
+                    cubeCommand:ShowMessage('Start!')
+                    csCoroutine = startCoroutine(showIdLater, 'Hello')
+                    coroutine.yield(csCoroutine)
+                    coroutine1 = startCoroutine(cubeCommand:Navi2TargetCoroutine('cube1', 100, 100))
+                    coroutine.yield(coroutine1)
+                    cubeCommand:ShowMessage('Finished!')
+                end
+
+                function showIdLater(id)
+                    coroutine.yield(CS.UnityEngine.WaitForSeconds(0.5))
+                    cubeCommand:ShowMessage(id)
+                end
+            ";
         }
     }
 }

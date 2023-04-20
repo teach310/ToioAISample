@@ -24,7 +24,7 @@ namespace ToioAI.CommandInterfaces
         // x: 45~455, y: 45~455
         IEnumerator Navi2TargetCoroutine(string id, double x, double y, int rotateTime = 250, float timeout = 5f);
 
-        // deg. world forward: -90, right: 0 
+        // deg. world top: -90, right: 0 
         IEnumerator Rotate2DegCoroutine(string id, double deg, int rotateTime = 250, float timeout = 5f);
     }
 }
