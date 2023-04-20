@@ -124,11 +124,12 @@ namespace XLua.CSObjectWrap
                     int _right = LuaAPI.xlua_tointeger(L, 4);
                     int _durationMs = LuaAPI.xlua_tointeger(L, 5);
                     
-                    gen_to_be_invoked.Move( _id, _left, _right, _durationMs );
+                        var gen_ret = gen_to_be_invoked.Move( _id, _left, _right, _durationMs );
+                        translator.PushAny(L, gen_ret);
                     
                     
                     
-                    return 0;
+                    return 1;
                 }
                 
             } catch(System.Exception gen_e) {

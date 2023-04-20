@@ -50,25 +50,23 @@ namespace ToioAI
                 return (int)ReversePosY(cube.y);
             }
 
-            public void Move(string id, int left, int right, int durationMs)
+            public IEnumerator Move(string id, int left, int right, int durationMs)
             {
                 var cube = cubes[id];
                 if (cube == null)
                 {
                     Debug.LogError($"Cube {id} is not found.");
-                    return;
+                    yield break;
                 }
 
-                if (!cm.IsControllable(cube))
+                while (!cm.IsControllable(cube))
                 {
-                    // 前回のCubeへの送信から45ミリ秒以上経過していない場合
-                    Debug.Log($"Cube {id} is not controllable.");
-                    return;
+                    yield return null;
                 }
                 cube.Move(left, right, durationMs);
             }
 
-            public IEnumerator Navi2TargetCoroutine(string id, double x, double y, int rotateTime = 250, float timeout = 5f)
+            public IEnumerator Navi2TargetCoroutine(string id, double x, double y, int rotateTime = 250, float timeout = 4f)
             {
                 while (!cm.synced)
                 {
@@ -98,7 +96,7 @@ namespace ToioAI
                 return 500 - y;
             }
 
-            public IEnumerator Rotate2DegCoroutine(string id, double deg, int rotateTime = 250, float timeout = 5f)
+            public IEnumerator Rotate2DegCoroutine(string id, double deg, int rotateTime = 250, float timeout = 4f)
             {
                 while (!cm.synced)
                 {
@@ -108,13 +106,14 @@ namespace ToioAI
                 float startTime = Time.time;
                 var handle = cm.handles[cubeIndexMap[id]];
 
-                Movement movement = handle.Rotate2Deg(deg, rotateTime).Exec();
+                // NOTE: ここでdegを反転させるのは、左回転が正のほうがchatgptの精度よさそうなため。
+                Movement movement = handle.Rotate2Deg(-deg, rotateTime).Exec();
                 while (!movement.reached && Time.time - startTime < timeout)
                 {
                     yield return null;
                     if (cm.synced)
                     {
-                        movement = handle.Rotate2Deg(deg, rotateTime).Exec();
+                        movement = handle.Rotate2Deg(-deg, rotateTime).Exec();
                     }
                 }
                 yield return null; // すぐに別の処理が入らないように1フレーム待つ

@@ -676,8 +676,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: -71.95691, y: 69.67218}
-  m_SizeDelta: {x: -319.17578, y: 107.7197}
+  m_AnchoredPosition: {x: -71.95691, y: 155.57321}
+  m_SizeDelta: {x: -319.1758, y: 279.5217}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1196888171
 MonoBehaviour:
@@ -726,7 +726,7 @@ MonoBehaviour:
   m_InputType: 0
   m_AsteriskChar: 42
   m_KeyboardType: 0
-  m_LineType: 1
+  m_LineType: 2
   m_HideMobileInput: 0
   m_CharacterValidation: 0
   m_CharacterLimit: 0
@@ -1047,6 +1047,7 @@ MonoBehaviour:
   sendButton: {fileID: 527028107}
   inputField: {fileID: 1196888171}
   connectType: 1
+  cubeCount: 2
 --- !u!4 &1270535774
 Transform:
   m_ObjectHideFlags: 0
