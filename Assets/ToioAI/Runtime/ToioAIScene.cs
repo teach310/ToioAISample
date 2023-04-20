@@ -28,6 +28,28 @@ namespace ToioAI
                 Debug.Log(message);
             }
 
+            public int GetCubePosX(string id)
+            {
+                var cube = cubes[id];
+                if (cube == null)
+                {
+                    Debug.LogError($"Cube {id} is not found.");
+                    return 0;
+                }
+                return cube.x;
+            }
+
+            public int GetCubePosY(string id)
+            {
+                var cube = cubes[id];
+                if (cube == null)
+                {
+                    Debug.LogError($"Cube {id} is not found.");
+                    return 0;
+                }
+                return (int)ReversePosY(cube.y);
+            }
+
             public void Move(string id, int left, int right, int durationMs)
             {
                 var cube = cubes[id];
@@ -55,17 +77,25 @@ namespace ToioAI
 
                 float startTime = Time.time;
                 var navigator = cm.navigators[cubeIndexMap[id]];
+                
+                var convertedY = ReversePosY(y);
 
-                Movement movement = navigator.Navi2Target(x, y, rotateTime).Exec();
+                Movement movement = navigator.Navi2Target(x, convertedY, rotateTime).Exec();
                 while (!movement.reached && Time.time - startTime < timeout)
                 {
                     yield return null;
                     if (cm.synced)
                     {
-                        movement = navigator.Navi2Target(x, y, rotateTime).Exec();
+                        movement = navigator.Navi2Target(x, convertedY, rotateTime).Exec();
                     }
                 }
                 yield return null; // すぐに別の処理が入らないように1フレーム待つ
+            }
+
+            // NOTE: 左上原点の座標系だとchatgptの精度落ちるため左下原点の座標系での点をもらう。
+            double ReversePosY(double y)
+            {
+                return 500 - y;
             }
 
             public IEnumerator Rotate2DegCoroutine(string id, double deg, int rotateTime = 250, float timeout = 5f)
@@ -145,32 +175,36 @@ namespace ToioAI
 
         void Update()
         {
-            if (Input.GetKeyDown(KeyCode.R))
+            bool isDebugMode = false;
+            if (isDebugMode)
             {
-                // Cubeの現在地を取得
-                var cube = cm.cubes[0];
-                UnityEngine.Debug.Log($"x: {cube.x}, y: {cube.y}");
-                UnityEngine.Debug.Log(cube.isGrounded);
+                // if (Input.GetKeyDown(KeyCode.R))
+                // {
+                //     // Cubeの現在地を取得
+                //     var cube = cm.cubes[0];
+                //     UnityEngine.Debug.Log($"x: {cube.x}, y: {cube.y}");
+                //     UnityEngine.Debug.Log(cube.isGrounded);
 
-                // https://toio.github.io/toio-spec/docs/hardware_position_id/
-                // 対象位置をランダムに決める x: 45~455, y: 45~455
-                // example) left top: 45, 45
-                var x = UnityEngine.Random.Range(45, 455);
-                var y = UnityEngine.Random.Range(45, 455);
-                UnityEngine.Debug.Log($"x: {x}, y: {y}");
-            }
+                //     // https://toio.github.io/toio-spec/docs/hardware_position_id/
+                //     // 対象位置をランダムに決める x: 45~455, y: 45~455
+                //     // example) left top: 45, 45
+                //     var x = UnityEngine.Random.Range(45, 455);
+                //     var y = UnityEngine.Random.Range(45, 455);
+                //     UnityEngine.Debug.Log($"x: {x}, y: {y}");
+                // }
 
-            if (Input.GetKeyDown(KeyCode.S))
-            {
-                luaEnv.DoString(@"
-                    function routine()
-                        cubeCommand:ShowMessage('Go to start position (=center) and look forward')
-                        coroutine.yield(cubeCommand:Navi2TargetCoroutine('cube1', 250, 250))
-                        coroutine.yield(cubeCommand:Rotate2DegCoroutine('cube1', -90))
-                        cubeCommand:ShowMessage('Ready!')
-                    end
-                ");
-                RunLuaAsync().Forget();
+                if (Input.GetKeyDown(KeyCode.S))
+                {
+                    luaEnv.DoString(@"
+                        function routine()
+                            cubeCommand:ShowMessage('Go to start position (=center) and look forward')
+                            coroutine.yield(cubeCommand:Navi2TargetCoroutine('cube1', 250, 250))
+                            coroutine.yield(cubeCommand:Rotate2DegCoroutine('cube1', -90))
+                            cubeCommand:ShowMessage('Ready!')
+                        end
+                    ");
+                    RunLuaAsync().Forget();
+                }
             }
         }
 
