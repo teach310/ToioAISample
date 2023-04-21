@@ -1046,7 +1046,7 @@ MonoBehaviour:
   label: {fileID: 271768545}
   sendButton: {fileID: 527028107}
   inputField: {fileID: 1196888171}
-  connectType: 1
+  connectType: 2
   cubeCount: 2
 --- !u!4 &1270535774
 Transform:
