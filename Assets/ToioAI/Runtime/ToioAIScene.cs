@@ -152,6 +152,7 @@ namespace ToioAI
                 cubeCommandHandler.cubeIndexMap[id] = i;
                 cubes[i].Move(1, 1, 10); // 初回Controllableがfalse返るので、一度動かしておく
                 luaGenerator.AddCubeId(id);
+                UnityEngine.Debug.Log($"cube{i + 1} is connected.");
             }
 
             luaEnv = new LuaEnv();
@@ -322,27 +323,10 @@ namespace ToioAI
         string GetSampleLuaScript()
         {
             return @"
-                local util = require 'xlua.util'
-
-                function startCoroutine(coroutine, ...)
-                    if type(coroutine) == 'function' then
-                        return csStartCoroutine(util.cs_generator(coroutine, ...))
-                    end
-                    return csStartCoroutine(coroutine)
-                end
-
                 function routine()
-                    cubeCommand:ShowMessage('Start!')
-                    csCoroutine = startCoroutine(showIdLater, 'Hello')
-                    coroutine.yield(csCoroutine)
-                    coroutine1 = startCoroutine(cubeCommand:Navi2TargetCoroutine('cube1', 100, 100))
-                    coroutine.yield(coroutine1)
-                    cubeCommand:ShowMessage('Finished!')
-                end
-
-                function showIdLater(id)
-                    coroutine.yield(CS.UnityEngine.WaitForSeconds(0.5))
-                    cubeCommand:ShowMessage(id)
+                    cubeCommand:ShowMessage('Rotating cube1...')
+                    coroutine.yield(cubeCommand:Move('cube1', 50, -50, 1000))
+                    cubeCommand:ShowMessage('Rotation complete!')
                 end
             ";
         }
